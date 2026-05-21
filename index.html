@@ -1135,16 +1135,15 @@ async function exportPDF() {
   function drawMark(cell, grade) {
     const gc = GRADE_COLORS[grade];
     if (!gc) return;
-    const pad = 2.2;
     const cx = cell.x + cell.width / 2;
     const cy = cell.y + cell.height / 2;
-    const s = Math.min(cell.width, cell.height) / 2 - pad;
-    // Coloured background pill
+    const s = 2.2; // fixed small size regardless of cell
+    // Small coloured rounded square background
     doc.setFillColor(...gc.fill);
-    doc.roundedRect(cell.x + 1, cell.y + 1, cell.width - 2, cell.height - 2, 1.5, 1.5, 'F');
-    // X lines
+    doc.roundedRect(cx - s - 1, cy - s - 1, (s + 1) * 2, (s + 1) * 2, 1, 1, 'F');
+    // X lines in matching text colour
     doc.setDrawColor(...gc.text);
-    doc.setLineWidth(0.9);
+    doc.setLineWidth(0.7);
     doc.line(cx - s, cy - s, cx + s, cy + s);
     doc.line(cx + s, cy - s, cx - s, cy + s);
   }
@@ -1179,10 +1178,11 @@ async function exportPDF() {
       theme: 'plain',
       styles: {
         fontSize: 8,
-        cellPadding: { top: 2.5, bottom: 2.5, left: 3, right: 3 },
+        cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
         textColor: TEXT,
         lineColor: BORDER,
-        lineWidth: 0.3,
+        lineWidth: 0.25,
+        overflow: 'linebreak',
       },
       headStyles: {
         fillColor: BG_LIGHT,
@@ -1190,29 +1190,31 @@ async function exportPDF() {
         fontStyle: 'bold',
         fontSize: 7,
         halign: 'center',
-        lineWidth: 0.3,
+        lineWidth: 0.25,
         lineColor: BORDER,
       },
-      alternateRowStyles: { fillColor: [247, 250, 253] },
+      // Subtle alternating — very light so text stays readable
+      alternateRowStyles: { fillColor: [248, 251, 254] },
       columnStyles: isGrade
         ? {
             0: { cellWidth: 8,  halign: 'center', fontStyle: 'bold', textColor: MUTED },
-            1: { cellWidth: 'auto' },
-            2: { cellWidth: 11, halign: 'center' },
-            3: { cellWidth: 11, halign: 'center' },
-            4: { cellWidth: 11, halign: 'center' },
-            5: { cellWidth: 11, halign: 'center' },
-            6: { cellWidth: 11, halign: 'center' },
+            1: { halign: 'left', textColor: TEXT },
+            2: { cellWidth: 12, halign: 'center' },
+            3: { cellWidth: 12, halign: 'center' },
+            4: { cellWidth: 12, halign: 'center' },
+            5: { cellWidth: 12, halign: 'center' },
+            6: { cellWidth: 12, halign: 'center' },
           }
         : {
             0: { cellWidth: 8,  halign: 'center', fontStyle: 'bold', textColor: MUTED },
-            1: { cellWidth: 'auto' },
-            2: { cellWidth: 16, halign: 'center' },
+            1: { halign: 'left', textColor: TEXT },
+            2: { cellWidth: 17, halign: 'center' },
             3: { cellWidth: 14, halign: 'center' },
             4: { cellWidth: 14, halign: 'center' },
           },
       margin: { left: PL, right: PR },
       didParseCell: (data) => {
+        // Clear text for marked cells so only the drawn X shows
         if (data.section === 'body' && typeof data.cell.raw === 'string' && data.cell.raw.startsWith(MARK)) {
           data.cell.text = [''];
         }
@@ -1222,12 +1224,10 @@ async function exportPDF() {
           const grade = data.cell.raw.replace(MARK, '');
           drawMark(data.cell, grade);
         }
-      },
-      willDrawCell: (data) => {
+        // Thin left accent bar on description column only — drawn AFTER cell so it's on top
         if (data.section === 'body' && data.column.index === 1 && data.row.raw[0] !== '—') {
-          // Left accent line on issue description col
           doc.setFillColor(...color);
-          doc.rect(data.cell.x, data.cell.y, 1, data.cell.height, 'F');
+          doc.rect(data.cell.x, data.cell.y, 0.8, data.cell.height, 'F');
         }
       },
     });
