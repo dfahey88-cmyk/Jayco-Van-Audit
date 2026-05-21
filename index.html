@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jayco – Finished Van Audit Sheet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root {
+    --jayco-blue: #0079c1;
+    --jayco-highlight: #00aeef;
+    --jayco-dark: #004f7d;
+    --jayco-charcoal: #2e3238;
+    --grade-c: #1d9e75;
+    --grade-a: #0079c1;
+    --grade-d: #e24b4a;
+    --grade-m: #ba7517;
+    --grade-f: #993556;
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --border: #d1dce8;
+    --text: #1a2332;
+    --text-muted: #5a6a7e;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: var(--jayco-charcoal);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .app-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-mark {
+    background: var(--jayco-blue);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 5px 10px;
+    border-radius: 5px;
+  }
+  .logo-text {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .logo-sub {
+    color: rgba(255,255,255,0.45);
+    font-size: 12px;
+    margin-top: 1px;
+  }
+  .header-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--jayco-blue);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #005fa0; }
+  .btn-secondary {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+  .btn-danger {
+    background: #c0392b;
+    color: #fff;
+  }
+  .btn-danger:hover { background: #a93226; }
+  .btn-outline {
+    background: transparent;
+    color: var(--jayco-blue);
+    border: 1.5px solid var(--jayco-blue);
+  }
+  .btn-outline:hover { background: #e8f4fc; }
+  .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* MAIN LAYOUT */
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* SECTION CARD */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .card-header {
+    background: var(--jayco-blue);
+    color: #fff;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header.charcoal { background: var(--jayco-charcoal); }
+  .card-header.dark { background: var(--jayco-dark); }
+  .card-body { padding: 20px; }
+
+  /* HEADER FIELDS */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+  }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .field-group input, .field-group select {
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg);
+    transition: border 0.15s;
+    width: 100%;
+  }
+  .field-group input:focus, .field-group select:focus {
+    outline: none;
+    border-color: var(--jayco-blue);
+    background: #fff;
+  }
+
+  /* SCORE DISPLAY */
+  .score-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .score-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: center;
+  }
+  .score-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .score-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--jayco-blue);
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+
+  /* GRADING LEGEND */
+  .grade-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #f7fafd;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .grade-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .g-c { background: #e1f5ee; color: #0f6e56; }
+  .g-a { background: #e6f1fb; color: #185fa5; }
+  .g-d { background: #fcebeb; color: #a32d2d; }
+  .g-m { background: #faeeda; color: #854f0b; }
+  .g-f { background: #fbeaf0; color: #993556; }
+
+  /* ISSUE TABLE */
+  .issue-table { width: 100%; border-collapse: collapse; }
+  .issue-table th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 8px 10px;
+    border-bottom: 1.5px solid var(--border);
+    text-align: center;
+  }
+  .issue-table th.left { text-align: left; }
+  .issue-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eef2f7;
+    vertical-align: middle;
+  }
+  .issue-table tr:last-child td { border-bottom: none; }
+  .issue-table tr:hover td { background: #f7fafd; }
+
+  .row-num {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    width: 28px;
+    text-align: center;
+  }
+
+  .issue-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+  }
+  .issue-input {
+    border: 1.5px solid transparent;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    background: transparent;
+    width: 100%;
+    transition: all 0.15s;
+  }
+  .issue-input:hover { border-color: var(--border); background: #fff; }
+  .issue-input:focus { outline: none; border-color: var(--jayco-blue); background: #fff; }
+  .issue-input::placeholder { color: #b0bec5; }
+
+  /* GRADE RADIO BUTTONS */
+  .grade-group {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+  }
+  .grade-radio { display: none; }
+  .grade-btn {
+    width: 32px;
+    height: 28px;
+    border-radius: 5px;
+    border: 1.5px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s;
+    color: var(--text-muted);
+    background: #fff;
+    user-select: none;
+  }
+  .grade-btn:hover { border-color: #aaa; color: var(--text); }
+  .grade-radio[data-grade="C"]:checked ~ label[data-for-grade="C"] { background: #e1f5ee; border-color: #1d9e75; color: #0f6e56; }
+  .grade-radio[data-grade="A"]:checked ~ label[data-for-grade="A"] { background: #e6f1fb; border-color: #0079c1; color: #185fa5; }
+  .grade-radio[data-grade="D"]:checked ~ label[data-for-grade="D"] { background: #fcebeb; border-color: #e24b4a; color: #a32d2d; }
+  .grade-radio[data-grade="M"]:checked ~ label[data-for-grade="M"] { background: #faeeda; border-color: #ef9f27; color: #854f0b; }
+  .grade-radio[data-grade="F"]:checked ~ label[data-for-grade="F"] { background: #fbeaf0; border-color: #d4537e; color: #72243e; }
+
+  /* MIC BUTTON */
+  .mic-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    color: var(--text-muted);
+  }
+  .mic-btn:hover { border-color: var(--jayco-blue); color: var(--jayco-blue); background: #e8f4fc; }
+  .mic-btn.listening {
+    border-color: #e24b4a;
+    background: #fef5f5;
+    color: #e24b4a;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(226,75,74,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(226,75,74,0); }
+  }
+  .mic-btn svg { width: 14px; height: 14px; }
+
+  /* DEPT RADIO (Product Improvement) */
+  .dept-group { display: flex; gap: 4px; justify-content: center; }
+  .dept-radio { display: none; }
+  .dept-btn {
+    padding: 4px 8px;
+    border-radius: 5px;
+    border: 1.5px solid var(--border);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.12s;
+    color: var(--text-muted);
+    background: #fff;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .dept-btn:hover { border-color: #aaa; color: var(--text); }
+  .dept-radio[data-dept="RD"]:checked ~ label[data-for-dept="RD"] { background: #e6f1fb; border-color: #0079c1; color: #185fa5; }
+  .dept-radio[data-dept="P"]:checked ~ label[data-for-dept="P"] { background: #e1f5ee; border-color: #1d9e75; color: #0f6e56; }
+  .dept-radio[data-dept="Q"]:checked ~ label[data-for-dept="Q"] { background: #faeeda; border-color: #ef9f27; color: #854f0b; }
+
+  /* PHOTO UPLOAD */
+  .photo-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg);
+  }
+  .photo-zone:hover, .photo-zone.dragover {
+    border-color: var(--jayco-blue);
+    background: #e8f4fc;
+  }
+  .photo-zone-text { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+  .photo-zone svg { color: var(--jayco-blue); opacity: 0.6; }
+  #photoInput { display: none; }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .photo-thumb {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .photo-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .photo-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .photo-remove:hover { background: #c0392b; }
+  .photo-caption {
+    padding: 4px 6px;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--bg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--jayco-charcoal);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: #0f6e56; }
+  .toast.error { background: #a32d2d; }
+
+  /* LISTENING BANNER */
+  .listening-banner {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e24b4a;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 9998;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(226,75,74,0.4);
+  }
+  .listening-banner.show { display: flex; }
+  .listening-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #fff;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* PRINT / PDF overrides */
+  @media print {
+    .app-header, .header-actions, .mic-btn, .photo-remove, .btn { display: none !important; }
+    body { background: #fff; }
+    .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+    .main { padding: 0; max-width: 100%; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .field-grid { grid-template-columns: 1fr; }
+    .score-row { grid-template-columns: 1fr 1fr; }
+    .header-actions .btn span { display: none; }
+    .grade-btn { width: 26px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-mark">JAYCO</div>
+    <div>
+      <div class="logo-text">Finished Van Audit</div>
+      <div class="logo-sub">QAF-012 · Issue 4</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="resetForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      <span>New Sheet</span>
+    </button>
+    <button class="btn btn-secondary" onclick="emailPDF()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+      <span>Email PDF</span>
+    </button>
+    <button class="btn btn-primary" onclick="exportPDF()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Export PDF</span>
+    </button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- HEADER INFO -->
+  <div class="card">
+    <div class="card-header charcoal">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Audit Details
+    </div>
+    <div class="card-body">
+      <div class="field-grid">
+        <div class="field-group">
+          <label>Date</label>
+          <input type="date" id="auditDate">
+        </div>
+        <div class="field-group">
+          <label>Model</label>
+          <input type="text" id="auditModel" placeholder="e.g. Journey 17.57-2">
+        </div>
+        <div class="field-group">
+          <label>Chassis #</label>
+          <input type="text" id="auditChassis" placeholder="e.g. JY2024-XXXXX">
+        </div>
+        <div class="field-group">
+          <label>Auditor</label>
+          <input type="text" id="auditAuditor" value="Daniel Fahey">
+        </div>
+      </div>
+      <div class="score-row">
+        <div class="score-card">
+          <div class="score-label">Interior Score</div>
+          <div class="score-value" id="scoreInterior">—</div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">Exterior Score</div>
+          <div class="score-value" id="scoreExterior">—</div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">Overall Score</div>
+          <div class="score-value" id="scoreOverall">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERIOR ISSUES -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Interior Issues
+    </div>
+    <div class="grade-legend">
+      <span class="grade-pill g-c">C – Cleaning/Sealing</span>
+      <span class="grade-pill g-a">A – Alignment/Adjustment</span>
+      <span class="grade-pill g-d">D – Damaged</span>
+      <span class="grade-pill g-m">M – Missing/Not Fitted</span>
+      <span class="grade-pill g-f">F – Poor Fitment</span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <table class="issue-table">
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th class="left">Issue Description</th>
+            <th style="width:36px;"></th>
+            <th style="width:36px;">C</th>
+            <th style="width:36px;">A</th>
+            <th style="width:36px;">D</th>
+            <th style="width:36px;">M</th>
+            <th style="width:36px;">F</th>
+          </tr>
+        </thead>
+        <tbody id="interiorBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXTERIOR ISSUES -->
+  <div class="card">
+    <div class="card-header dark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Exterior Issues
+    </div>
+    <div class="grade-legend">
+      <span class="grade-pill g-c">C – Cleaning/Sealing</span>
+      <span class="grade-pill g-a">A – Alignment/Adjustment</span>
+      <span class="grade-pill g-d">D – Damaged</span>
+      <span class="grade-pill g-m">M – Missing/Not Fitted</span>
+      <span class="grade-pill g-f">F – Poor Fitment</span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <table class="issue-table">
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th class="left">Issue Description</th>
+            <th style="width:36px;"></th>
+            <th style="width:36px;">C</th>
+            <th style="width:36px;">A</th>
+            <th style="width:36px;">D</th>
+            <th style="width:36px;">M</th>
+            <th style="width:36px;">F</th>
+          </tr>
+        </thead>
+        <tbody id="exteriorBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PRODUCT IMPROVEMENT -->
+  <div class="card">
+    <div class="card-header charcoal">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Product Improvement Section
+    </div>
+    <div class="grade-legend">
+      <span class="grade-pill g-a">R&D – Design</span>
+      <span class="grade-pill g-c">P – Purchasing</span>
+      <span class="grade-pill g-m">Q – Queries/Suggestions</span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <table class="issue-table">
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th class="left">Design/Component Issue or Suggestion</th>
+            <th style="width:36px;"></th>
+            <th style="width:50px;">R&D</th>
+            <th style="width:50px;">P</th>
+            <th style="width:50px;">Q</th>
+          </tr>
+        </thead>
+        <tbody id="improvBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PHOTO UPLOAD -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Photos
+    </div>
+    <div class="card-body">
+      <div class="photo-zone" id="photoZone" onclick="document.getElementById('photoInput').click()">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <div class="photo-zone-text">Tap to add photos · or drag & drop here<br><span style="font-size:11px;color:#90a4b0;">Supports JPG, PNG, HEIC</span></div>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" multiple>
+      <div class="photo-grid" id="photoGrid"></div>
+    </div>
+  </div>
+
+</main>
+
+<div class="listening-banner" id="listeningBanner">
+  <div class="listening-dot"></div>
+  Listening… speak your issue
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GRADES = ['C','A','D','M','F'];
+const DEPTS = ['RD','P','Q'];
+const DEPT_LABELS = { RD: 'R&D', P: 'P', Q: 'Q' };
+let photos = [];
+let activeRecognition = null;
+let activeRowInfo = null;
+
+// ─── BUILD ROWS ───────────────────────────────────────────────
+function buildIssueRows(tbodyId, prefix, count) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = '';
+  for (let i = 1; i <= count; i++) {
+    const id = `${prefix}-${i}`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-num">${i}</td>
+      <td>
+        <div class="issue-input-wrap">
+          <input class="issue-input" type="text" id="issue-${id}" placeholder="Tap mic or type issue…" oninput="updateScores()">
+        </div>
+      </td>
+      <td>
+        <button class="mic-btn" onclick="startVoice('${id}','issue')" title="Voice input" aria-label="Voice input for row ${i}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </td>
+      ${GRADES.map(g => `
+        <td>
+          <div class="grade-group">
+            <input class="grade-radio" type="radio" name="grade-${id}" id="grade-${id}-${g}" data-grade="${g}" onchange="updateScores()">
+            <label class="grade-btn" data-for-grade="${g}" for="grade-${id}-${g}" title="${g}">${g}</label>
+          </div>
+        </td>
+      `).join('')}
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function buildImprovRows() {
+  const tbody = document.getElementById('improvBody');
+  tbody.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const id = `improv-${i}`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-num">${i}</td>
+      <td>
+        <div class="issue-input-wrap">
+          <input class="issue-input" type="text" id="issue-${id}" placeholder="Tap mic or type suggestion…">
+        </div>
+      </td>
+      <td>
+        <button class="mic-btn" onclick="startVoice('${id}','improv')" title="Voice input" aria-label="Voice input for row ${i}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </td>
+      ${DEPTS.map(d => `
+        <td>
+          <div class="dept-group">
+            <input class="dept-radio" type="radio" name="dept-${id}" id="dept-${id}-${d}" data-dept="${d}">
+            <label class="dept-btn" data-for-dept="${d}" for="dept-${id}-${d}">${DEPT_LABELS[d]}</label>
+          </div>
+        </td>
+      `).join('')}
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+// ─── SCORES ───────────────────────────────────────────────────
+function countIssues(prefix, count) {
+  let n = 0;
+  for (let i = 1; i <= count; i++) {
+    const val = document.getElementById(`issue-${prefix}-${i}`)?.value.trim();
+    if (val) n++;
+  }
+  return n;
+}
+
+function updateScores() {
+  const intIssues = countIssues('int', 12);
+  const extIssues = countIssues('ext', 8);
+  const intScore = intIssues === 0 ? '—' : Math.max(0, 12 - intIssues);
+  const extScore = extIssues === 0 ? '—' : Math.max(0, 8 - extIssues);
+  const overall = (intIssues === 0 && extIssues === 0) ? '—' : Math.max(0, 20 - intIssues - extIssues);
+  document.getElementById('scoreInterior').textContent = intScore;
+  document.getElementById('scoreExterior').textContent = extScore;
+  document.getElementById('scoreOverall').textContent = overall;
+}
+
+// ─── VOICE INPUT ──────────────────────────────────────────────
+function startVoice(rowId, type) {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showToast('Voice input not supported in this browser. Try Chrome.', 'error');
+    return;
+  }
+  if (activeRecognition) {
+    activeRecognition.stop();
+    return;
+  }
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'en-AU';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  activeRecognition = recognition;
+  activeRowInfo = { rowId, type };
+
+  // Highlight mic button
+  const micBtns = document.querySelectorAll('.mic-btn');
+  micBtns.forEach(b => {
+    if (b.getAttribute('onclick').includes(rowId)) b.classList.add('listening');
+  });
+  document.getElementById('listeningBanner').classList.add('show');
+
+  recognition.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    processVoiceResult(transcript, rowId, type);
+  };
+  recognition.onerror = () => {
+    stopListening();
+    showToast('Voice input failed. Please try again.', 'error');
+  };
+  recognition.onend = stopListening;
+  recognition.start();
+}
+
+function stopListening() {
+  activeRecognition = null;
+  document.querySelectorAll('.mic-btn').forEach(b => b.classList.remove('listening'));
+  document.getElementById('listeningBanner').classList.remove('show');
+}
+
+function processVoiceResult(transcript, rowId, type) {
+  const input = document.getElementById(`issue-${rowId}`);
+  if (!input) return;
+
+  // Clean up transcript
+  let text = transcript.trim();
+
+  if (type === 'issue') {
+    // Try to detect grade keywords
+    const gradeMap = {
+      'cleaning': 'C', 'clean': 'C', 'sealing': 'C', 'seal': 'C',
+      'alignment': 'A', 'adjust': 'A', 'adjusted': 'A', 'aligning': 'A',
+      'damaged': 'D', 'damage': 'D', 'broken': 'D', 'cracked': 'D', 'scratched': 'D',
+      'missing': 'M', 'not fitted': 'M', 'not installed': 'M', 'absent': 'M',
+      'fitment': 'F', 'poor fit': 'F', 'fitting': 'F', 'misfit': 'F'
+    };
+    let detectedGrade = null;
+    const lower = text.toLowerCase();
+    for (const [kw, grade] of Object.entries(gradeMap)) {
+      if (lower.includes(kw)) { detectedGrade = grade; break; }
+    }
+
+    // Remove grade keywords from description for cleaner text
+    const removeWords = ['cleaning', 'sealing', 'alignment', 'adjustment', 'damaged', 'missing', 'not fitted', 'poor fitment', 'fitment'];
+    let cleanText = text;
+    // Capitalise first letter
+    cleanText = cleanText.charAt(0).toUpperCase() + cleanText.slice(1);
+    input.value = cleanText;
+    updateScores();
+
+    if (detectedGrade) {
+      const radio = document.getElementById(`grade-${rowId}-${detectedGrade}`);
+      if (radio) { radio.checked = true; updateScores(); }
+      showToast(`✓ "${cleanText}" · Grade: ${detectedGrade}`, 'success');
+    } else {
+      showToast(`✓ "${cleanText}" — select a grade`, '');
+    }
+  } else {
+    // Improvement row — detect dept
+    const deptMap = {
+      'design': 'RD', 'r&d': 'RD', 'research': 'RD', 'engineering': 'RD',
+      'purchasing': 'P', 'purchase': 'P', 'supplier': 'P', 'supply': 'P',
+      'query': 'Q', 'queries': 'Q', 'suggestion': 'Q', 'suggest': 'Q', 'feedback': 'Q'
+    };
+    const lower = text.toLowerCase();
+    let detectedDept = null;
+    for (const [kw, dept] of Object.entries(deptMap)) {
+      if (lower.includes(kw)) { detectedDept = dept; break; }
+    }
+    let cleanText = text.charAt(0).toUpperCase() + text.slice(1);
+    input.value = cleanText;
+    if (detectedDept) {
+      const radio = document.getElementById(`dept-${rowId}-${detectedDept}`);
+      if (radio) radio.checked = true;
+      showToast(`✓ "${cleanText}" · Dept: ${DEPT_LABELS[detectedDept]}`, 'success');
+    } else {
+      showToast(`✓ "${cleanText}" — select a department`, '');
+    }
+  }
+}
+
+// ─── PHOTOS ───────────────────────────────────────────────────
+document.getElementById('photoInput').addEventListener('change', (e) => {
+  handleFiles(Array.from(e.target.files));
+  e.target.value = '';
+});
+
+const zone = document.getElementById('photoZone');
+zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  zone.classList.remove('dragover');
+  handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+});
+
+function handleFiles(files) {
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      photos.push({ name: file.name, data: e.target.result });
+      renderPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPhotos() {
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = '';
+  photos.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'photo-thumb';
+    div.innerHTML = `
+      <img src="${p.data}" alt="${p.name}">
+      <button class="photo-remove" onclick="removePhoto(${i})" title="Remove">×</button>
+      <div class="photo-caption">${p.name}</div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function removePhoto(i) {
+  photos.splice(i, 1);
+  renderPhotos();
+}
+
+// ─── PDF EXPORT ───────────────────────────────────────────────
+function getFormData() {
+  const date = document.getElementById('auditDate').value;
+  const model = document.getElementById('auditModel').value;
+  const chassis = document.getElementById('auditChassis').value;
+  const auditor = document.getElementById('auditAuditor').value;
+  const intScore = document.getElementById('scoreInterior').textContent;
+  const extScore = document.getElementById('scoreExterior').textContent;
+  const overall = document.getElementById('scoreOverall').textContent;
+
+  const getRows = (prefix, count, grades) => {
+    const rows = [];
+    for (let i = 1; i <= count; i++) {
+      const issue = document.getElementById(`issue-${prefix}-${i}`)?.value || '';
+      let grade = '';
+      if (grades) {
+        GRADES.forEach(g => {
+          if (document.getElementById(`grade-${prefix}-${i}-${g}`)?.checked) grade = g;
+        });
+      } else {
+        DEPTS.forEach(d => {
+          if (document.getElementById(`dept-${prefix}-${i}-${d}`)?.checked) grade = DEPT_LABELS[d];
+        });
+      }
+      if (issue || grade) rows.push({ num: i, issue, grade });
+    }
+    return rows;
+  };
+
+  return {
+    date: date ? new Date(date).toLocaleDateString('en-AU') : '',
+    model, chassis, auditor,
+    intScore, extScore, overall,
+    interior: getRows('int', 12, true),
+    exterior: getRows('ext', 8, true),
+    improv: getRows('improv', 5, false)
+  };
+}
+
+async function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const fd = getFormData();
+
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, PL = 15, PR = 15, CW = W - PL - PR;
+
+  // Header bar
+  doc.setFillColor(46, 50, 56);
+  doc.rect(0, 0, W, 22, 'F');
+  doc.setFillColor(0, 121, 193);
+  doc.rect(0, 0, 6, 22, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('JAYCO', PL + 4, 10);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Finished Van Audit Sheet', PL + 4, 16);
+  doc.setFontSize(8);
+  doc.setTextColor(180, 200, 220);
+  doc.text('QAF-012  ·  Issue 4', W - PR, 16, { align: 'right' });
+
+  let y = 28;
+
+  // Details grid
+  doc.setTextColor(90, 106, 126);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  const cols = [PL, PL + CW/4 + 5, PL + CW/2 + 5, PL + 3*CW/4 + 5];
+  const labels = ['DATE', 'MODEL', 'CHASSIS #', 'AUDITOR'];
+  const vals = [fd.date, fd.model, fd.chassis, fd.auditor];
+  labels.forEach((l, i) => {
+    doc.text(l, cols[i], y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 35, 50);
+    doc.setFontSize(9);
+    doc.text(vals[i] || '—', cols[i], y + 4);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(90, 106, 126);
+    doc.setFontSize(7);
+  });
+  y += 12;
+
+  // Score row
+  const sLabels = ['INTERIOR SCORE', 'EXTERIOR SCORE', 'OVERALL SCORE'];
+  const sVals = [fd.intScore, fd.extScore, fd.overall];
+  const sw = CW / 3;
+  sLabels.forEach((l, i) => {
+    const sx = PL + i * sw;
+    doc.setFillColor(240, 244, 248);
+    doc.roundedRect(sx, y, sw - 3, 14, 2, 2, 'F');
+    doc.setTextColor(90, 106, 126);
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'bold');
+    doc.text(l, sx + (sw-3)/2, y + 4, { align: 'center' });
+    doc.setTextColor(0, 121, 193);
+    doc.setFontSize(14);
+    doc.text(sVals[i] || '—', sx + (sw-3)/2, y + 11, { align: 'center' });
+  });
+  y += 20;
+
+  // Issue tables helper
+  function drawIssueTable(title, rows, isGrade, headerColor) {
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.setFillColor(...headerColor);
+    doc.rect(PL, y, CW, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, PL + 3, y + 4.5);
+    y += 7;
+
+    const head = isGrade
+      ? [['#', 'Issue Description', 'C', 'A', 'D', 'M', 'F']]
+      : [['#', 'Item / Suggestion', 'R&D', 'P', 'Q']];
+    const body = rows.length > 0 ? rows.map(r => {
+      if (isGrade) return [r.num, r.issue, r.grade==='C'?'✓':'', r.grade==='A'?'✓':'', r.grade==='D'?'✓':'', r.grade==='M'?'✓':'', r.grade==='F'?'✓':''];
+      return [r.num, r.issue, r.grade==='R&D'?'✓':'', r.grade==='P'?'✓':'', r.grade==='Q'?'✓':''];
+    }) : [['-', '(No issues recorded)', '', '', '', isGrade?'':'', isGrade?'':'']];
+
+    doc.autoTable({
+      startY: y,
+      head,
+      body,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 2, textColor: [26, 35, 50] },
+      headStyles: { fillColor: [240, 244, 248], textColor: [90, 106, 126], fontStyle: 'bold', fontSize: 7 },
+      columnStyles: isGrade
+        ? { 0: { cellWidth: 8, halign: 'center' }, 2: { cellWidth: 12, halign: 'center' }, 3: { cellWidth: 12, halign: 'center' }, 4: { cellWidth: 12, halign: 'center' }, 5: { cellWidth: 12, halign: 'center' }, 6: { cellWidth: 12, halign: 'center' } }
+        : { 0: { cellWidth: 8, halign: 'center' }, 2: { cellWidth: 18, halign: 'center' }, 3: { cellWidth: 14, halign: 'center' }, 4: { cellWidth: 14, halign: 'center' } },
+      margin: { left: PL, right: PR },
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  }
+
+  drawIssueTable('INTERIOR ISSUES', fd.interior, true, [0, 121, 193]);
+  drawIssueTable('EXTERIOR ISSUES', fd.exterior, true, [0, 79, 125]);
+  drawIssueTable('PRODUCT IMPROVEMENT SECTION', fd.improv, false, [46, 50, 56]);
+
+  // Photos
+  if (photos.length > 0) {
+    if (y > 200) { doc.addPage(); y = 20; }
+    doc.setFillColor(0, 121, 193);
+    doc.rect(PL, y, CW, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PHOTOS', PL + 3, y + 4.5);
+    y += 10;
+
+    const imgW = 55, imgH = 42, gap = 5;
+    let px = PL;
+    for (const photo of photos) {
+      if (px + imgW > W - PR) { px = PL; y += imgH + gap + 6; }
+      if (y + imgH > 270) { doc.addPage(); y = 20; px = PL; }
+      try {
+        const fmt = photo.data.includes('image/png') ? 'PNG' : 'JPEG';
+        doc.addImage(photo.data, fmt, px, y, imgW, imgH);
+        doc.setFontSize(6);
+        doc.setTextColor(120, 140, 160);
+        doc.text(photo.name.substring(0, 20), px, y + imgH + 3);
+      } catch(e) {}
+      px += imgW + gap;
+    }
+    y += imgH + 10;
+  }
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(200, 210, 220);
+    doc.line(PL, 285, W - PR, 285);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 165, 180);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Jayco Australia · QAF-012 Issue 4 · Generated ${new Date().toLocaleDateString('en-AU')}`, PL, 290);
+    doc.text(`Page ${i} of ${pageCount}`, W - PR, 290, { align: 'right' });
+  }
+
+  const chassis = fd.chassis || 'audit';
+  doc.save(`Jayco_Audit_${chassis}_${fd.date.replace(/\//g,'-') || 'draft'}.pdf`);
+  showToast('PDF exported successfully', 'success');
+}
+
+function emailPDF() {
+  const fd = getFormData();
+  const subject = encodeURIComponent(`Jayco Finished Van Audit – ${fd.model || 'Van'} · ${fd.chassis || ''} · ${fd.date}`);
+  const body = encodeURIComponent(
+    `Hi,\n\nPlease find attached the Finished Van Audit Sheet.\n\nModel: ${fd.model || '—'}\nChassis: ${fd.chassis || '—'}\nDate: ${fd.date || '—'}\nAuditor: ${fd.auditor || '—'}\n\nInterior Score: ${fd.intScore}\nExterior Score: ${fd.extScore}\nOverall Score: ${fd.overall}\n\n— Generated via Jayco Audit App`
+  );
+  exportPDF().then ? null : null;
+  setTimeout(() => {
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    showToast('Email client opened — attach the PDF you just saved', '');
+  }, 800);
+  exportPDF();
+}
+
+// ─── RESET ────────────────────────────────────────────────────
+function resetForm() {
+  if (!confirm('Clear all fields and start a new sheet?')) return;
+  document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('auditModel').value = '';
+  document.getElementById('auditChassis').value = '';
+  document.getElementById('auditAuditor').value = 'Daniel Fahey';
+  buildIssueRows('interiorBody', 'int', 12);
+  buildIssueRows('exteriorBody', 'ext', 8);
+  buildImprovRows();
+  photos = [];
+  renderPhotos();
+  updateScores();
+  showToast('New sheet ready', '');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
+buildIssueRows('interiorBody', 'int', 12);
+buildIssueRows('exteriorBody', 'ext', 8);
+buildImprovRows();
+</script>
+</body>
+</html>
