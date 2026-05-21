@@ -949,166 +949,287 @@ function getFormData() {
 async function exportPDF() {
   const { jsPDF } = window.jspdf;
   const fd = getFormData();
-
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const W = 210, PL = 15, PR = 15, CW = W - PL - PR;
+  const W = 210, PL = 14, PR = 14, CW = W - PL - PR;
 
-  // Header bar
-  doc.setFillColor(46, 50, 56);
-  doc.rect(0, 0, W, 22, 'F');
-  doc.setFillColor(0, 121, 193);
-  doc.rect(0, 0, 6, 22, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
+  // Colour palette
+  const BLUE       = [0, 121, 193];
+  const DARK_BLUE  = [0, 79, 125];
+  const CHARCOAL   = [46, 50, 56];
+  const BG_LIGHT   = [240, 244, 248];
+  const TEXT       = [26, 35, 50];
+  const MUTED      = [90, 106, 126];
+  const WHITE      = [255, 255, 255];
+  const BORDER     = [209, 220, 232];
+
+  // Grade colours (fill, text) — matches app pills
+  const GRADE_COLORS = {
+    C:   { fill: [225, 245, 238], text: [15, 110, 86],  label: 'Cleaning/Sealing'  },
+    A:   { fill: [230, 241, 251], text: [24, 95, 165],  label: 'Alignment/Adjust'  },
+    D:   { fill: [252, 235, 235], text: [163, 45, 45],  label: 'Damaged'            },
+    M:   { fill: [250, 238, 218], text: [133, 79, 11],  label: 'Missing/Not Fitted' },
+    F:   { fill: [251, 234, 240], text: [153, 53, 86],  label: 'Poor Fitment'       },
+    'R&D': { fill: [230, 241, 251], text: [24, 95, 165],  label: 'R&D – Design'    },
+    P:   { fill: [225, 245, 238], text: [15, 110, 86],  label: 'P – Purchasing'     },
+    Q:   { fill: [250, 238, 218], text: [133, 79, 11],  label: 'Q – Queries'        },
+  };
+
+  // ── HEADER ──────────────────────────────────────────────────
+  // Full-width charcoal bar
+  doc.setFillColor(...CHARCOAL);
+  doc.rect(0, 0, W, 26, 'F');
+  // Blue left accent stripe
+  doc.setFillColor(...BLUE);
+  doc.rect(0, 0, 5, 26, 'F');
+  // Blue logo pill
+  doc.setFillColor(...BLUE);
+  doc.roundedRect(PL + 2, 5, 22, 10, 2, 2, 'F');
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
-  doc.text('JAYCO', PL + 4, 10);
-  doc.setFontSize(9);
+  doc.text('JAYCO', PL + 13, 11.5, { align: 'center' });
+  // Title
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Finished Van Audit Sheet', PL + 28, 10);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('Finished Van Audit Sheet', PL + 4, 16);
+  doc.setTextColor(180, 200, 220);
+  doc.text('QAF-012  ·  Issue 4', PL + 28, 16);
+  // Date top right
   doc.setFontSize(8);
   doc.setTextColor(180, 200, 220);
-  doc.text('QAF-012  ·  Issue 4', W - PR, 16, { align: 'right' });
-
-  let y = 28;
-
-  // Details grid
-  doc.setTextColor(90, 106, 126);
+  doc.text(fd.date || '', W - PR, 11, { align: 'right' });
   doc.setFontSize(7);
-  doc.setFont('helvetica', 'bold');
-  const cols = [PL, PL + CW/4 + 5, PL + CW/2 + 5, PL + 3*CW/4 + 5];
-  const labels = ['DATE', 'MODEL', 'CHASSIS #', 'AUDITOR'];
-  const vals = [fd.date, fd.model, fd.chassis, fd.auditor];
-  labels.forEach((l, i) => {
-    doc.text(l, cols[i], y);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(26, 35, 50);
-    doc.setFontSize(9);
-    doc.text(vals[i] || '—', cols[i], y + 4);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(90, 106, 126);
-    doc.setFontSize(7);
-  });
-  y += 12;
+  doc.text(fd.auditor || '', W - PR, 17, { align: 'right' });
 
-  // Score row
-  const sLabels = ['INTERIOR SCORE', 'EXTERIOR SCORE', 'OVERALL SCORE'];
-  const sVals = [fd.intScore, fd.extScore, fd.overall];
-  const sw = CW / 3;
-  sLabels.forEach((l, i) => {
-    const sx = PL + i * sw;
-    doc.setFillColor(240, 244, 248);
-    doc.roundedRect(sx, y, sw - 3, 14, 2, 2, 'F');
-    doc.setTextColor(90, 106, 126);
+  let y = 32;
+
+  // ── AUDIT DETAIL CARDS ──────────────────────────────────────
+  const cardW = (CW - 9) / 4;
+  const cardLabels = ['DATE', 'MODEL', 'CHASSIS #', 'AUDITOR'];
+  const cardVals   = [fd.date, fd.model, fd.chassis, fd.auditor];
+  cardLabels.forEach((lbl, i) => {
+    const cx = PL + i * (cardW + 3);
+    doc.setFillColor(...BG_LIGHT);
+    doc.roundedRect(cx, y, cardW, 14, 2, 2, 'F');
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(cx, y, cardW, 14, 2, 2, 'S');
     doc.setFontSize(6);
     doc.setFont('helvetica', 'bold');
-    doc.text(l, sx + (sw-3)/2, y + 4, { align: 'center' });
-    doc.setTextColor(0, 121, 193);
-    doc.setFontSize(14);
-    doc.text(sVals[i] || '—', sx + (sw-3)/2, y + 11, { align: 'center' });
-  });
-  y += 20;
-
-  // Issue tables helper
-  function drawIssueTable(title, rows, isGrade, headerColor) {
-    if (y > 240) { doc.addPage(); y = 20; }
-    doc.setFillColor(...headerColor);
-    doc.rect(PL, y, CW, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
+    doc.setTextColor(...MUTED);
+    doc.text(lbl, cx + cardW / 2, y + 4.5, { align: 'center' });
+    doc.setFontSize(8.5);
     doc.setFont('helvetica', 'bold');
-    doc.text(title, PL + 3, y + 4.5);
-    y += 7;
+    doc.setTextColor(...TEXT);
+    doc.text(cardVals[i] || '—', cx + cardW / 2, y + 10.5, { align: 'center' });
+  });
+  y += 18;
 
+  // ── SCORE CARDS ─────────────────────────────────────────────
+  const scW = (CW - 6) / 3;
+  const scLabels = ['INTERIOR SCORE', 'EXTERIOR SCORE', 'OVERALL SCORE'];
+  const scVals   = [fd.intScore, fd.extScore, fd.overall];
+  scLabels.forEach((lbl, i) => {
+    const sx = PL + i * (scW + 3);
+    // Blue top accent line
+    doc.setFillColor(...BLUE);
+    doc.rect(sx, y, scW, 1.5, 'F');
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(sx, y + 1.5, scW, 16, 1, 1, 'F');
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(sx, y + 1.5, scW, 16, 1, 1, 'S');
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...MUTED);
+    doc.text(lbl, sx + scW / 2, y + 7, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...BLUE);
+    doc.text(scVals[i] || '—', sx + scW / 2, y + 15, { align: 'center' });
+  });
+  y += 22;
+
+  // ── GRADE LEGEND BAR ────────────────────────────────────────
+  function drawLegend(grades) {
+    doc.setFillColor(...BG_LIGHT);
+    doc.roundedRect(PL, y, CW, 8, 1, 1, 'F');
+    const keys = Object.keys(grades);
+    const pillW = CW / keys.length;
+    keys.forEach((k, i) => {
+      const gc = GRADE_COLORS[k];
+      if (!gc) return;
+      const px = PL + i * pillW + pillW / 2;
+      doc.setFontSize(6.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...gc.text);
+      doc.text(`${k} – ${gc.label}`, px, y + 5, { align: 'center' });
+    });
+  }
+
+  // ── SECTION HEADER ──────────────────────────────────────────
+  function drawSectionHeader(title, color) {
+    if (y > 245) { doc.addPage(); y = 16; }
+    doc.setFillColor(...color);
+    doc.roundedRect(PL, y, CW, 8, 2, 2, 'F');
+    // small icon dot
+    doc.setFillColor(255, 255, 255, 0.3);
+    doc.setTextColor(...WHITE);
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, PL + 4, y + 5.5);
+    y += 8;
+  }
+
+  // ── DRAW X MARK ─────────────────────────────────────────────
+  function drawMark(cell, grade) {
+    const gc = GRADE_COLORS[grade];
+    if (!gc) return;
+    const pad = 2.2;
+    const cx = cell.x + cell.width / 2;
+    const cy = cell.y + cell.height / 2;
+    const s = Math.min(cell.width, cell.height) / 2 - pad;
+    // Coloured background pill
+    doc.setFillColor(...gc.fill);
+    doc.roundedRect(cell.x + 1, cell.y + 1, cell.width - 2, cell.height - 2, 1.5, 1.5, 'F');
+    // X lines
+    doc.setDrawColor(...gc.text);
+    doc.setLineWidth(0.9);
+    doc.line(cx - s, cy - s, cx + s, cy + s);
+    doc.line(cx + s, cy - s, cx - s, cy + s);
+  }
+
+  // ── ISSUE TABLE ─────────────────────────────────────────────
+  function drawIssueTable(title, rows, isGrade, color) {
     const gradeKeys = isGrade ? ['C','A','D','M','F'] : ['R&D','P','Q'];
-    const head = isGrade
-      ? [['#', 'Issue Description', 'C', 'A', 'D', 'M', 'F']]
-      : [['#', 'Item / Suggestion', 'R&D', 'P', 'Q']];
 
-    // Use MARK as a sentinel — drawn as X in didDrawCell
-    const MARK = 'MARK';
+    drawSectionHeader(title, color);
+
+    // Legend
+    const legendGrades = {};
+    gradeKeys.forEach(k => { legendGrades[k] = true; });
+    drawLegend(legendGrades);
+    y += 10;
+
+    const MARK = '__MARK__';
+    const head = [isGrade
+      ? ['#', 'Issue Description', 'C', 'A', 'D', 'M', 'F']
+      : ['#', 'Item / Suggestion', 'R&D', 'P', 'Q']];
+
     const body = rows.length > 0 ? rows.map(r => {
-      const base = [r.num, r.issue];
-      gradeKeys.forEach(k => base.push(r.grade === k ? MARK : ''));
-      return base;
-    }) : [['-', '(No issues recorded)', ...gradeKeys.map(() => '')]];
-
-    // Draw a clean X into a cell
-    function drawX(doc, cell) {
-      const pad = 3;
-      const x1 = cell.x + pad, y1 = cell.y + pad;
-      const x2 = cell.x + cell.width - pad, y2 = cell.y + cell.height - pad;
-      doc.setDrawColor(0, 79, 125);
-      doc.setLineWidth(0.8);
-      doc.line(x1, y1, x2, y2);
-      doc.line(x2, y1, x1, y2);
-    }
+      const row = [r.num, r.issue || ''];
+      gradeKeys.forEach(k => row.push(r.grade === k ? `${MARK}${k}` : ''));
+      return row;
+    }) : [['—', 'No issues recorded', ...gradeKeys.map(() => '')]];
 
     doc.autoTable({
       startY: y,
       head,
       body,
-      theme: 'grid',
-      styles: { fontSize: 8, cellPadding: 2, textColor: [26, 35, 50] },
-      headStyles: { fillColor: [240, 244, 248], textColor: [90, 106, 126], fontStyle: 'bold', fontSize: 7 },
+      theme: 'plain',
+      styles: {
+        fontSize: 8,
+        cellPadding: { top: 2.5, bottom: 2.5, left: 3, right: 3 },
+        textColor: TEXT,
+        lineColor: BORDER,
+        lineWidth: 0.3,
+      },
+      headStyles: {
+        fillColor: BG_LIGHT,
+        textColor: MUTED,
+        fontStyle: 'bold',
+        fontSize: 7,
+        halign: 'center',
+        lineWidth: 0.3,
+        lineColor: BORDER,
+      },
+      alternateRowStyles: { fillColor: [247, 250, 253] },
       columnStyles: isGrade
-        ? { 0: { cellWidth: 8, halign: 'center' }, 2: { cellWidth: 12, halign: 'center' }, 3: { cellWidth: 12, halign: 'center' }, 4: { cellWidth: 12, halign: 'center' }, 5: { cellWidth: 12, halign: 'center' }, 6: { cellWidth: 12, halign: 'center' } }
-        : { 0: { cellWidth: 8, halign: 'center' }, 2: { cellWidth: 18, halign: 'center' }, 3: { cellWidth: 14, halign: 'center' }, 4: { cellWidth: 14, halign: 'center' } },
+        ? {
+            0: { cellWidth: 8,  halign: 'center', fontStyle: 'bold', textColor: MUTED },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 11, halign: 'center' },
+            3: { cellWidth: 11, halign: 'center' },
+            4: { cellWidth: 11, halign: 'center' },
+            5: { cellWidth: 11, halign: 'center' },
+            6: { cellWidth: 11, halign: 'center' },
+          }
+        : {
+            0: { cellWidth: 8,  halign: 'center', fontStyle: 'bold', textColor: MUTED },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 16, halign: 'center' },
+            3: { cellWidth: 14, halign: 'center' },
+            4: { cellWidth: 14, halign: 'center' },
+          },
       margin: { left: PL, right: PR },
-      didDrawCell: (data) => {
-        if (data.section === 'body' && data.cell.raw === MARK) {
-          drawX(doc, data.cell);
+      didParseCell: (data) => {
+        if (data.section === 'body' && typeof data.cell.raw === 'string' && data.cell.raw.startsWith(MARK)) {
+          data.cell.text = [''];
         }
       },
-      didParseCell: (data) => {
-        if (data.cell.raw === MARK) data.cell.text = [''];
-      }
+      didDrawCell: (data) => {
+        if (data.section === 'body' && typeof data.cell.raw === 'string' && data.cell.raw.startsWith(MARK)) {
+          const grade = data.cell.raw.replace(MARK, '');
+          drawMark(data.cell, grade);
+        }
+      },
+      willDrawCell: (data) => {
+        if (data.section === 'body' && data.column.index === 1 && data.row.raw[0] !== '—') {
+          // Left accent line on issue description col
+          doc.setFillColor(...color);
+          doc.rect(data.cell.x, data.cell.y, 1, data.cell.height, 'F');
+        }
+      },
     });
-    y = doc.lastAutoTable.finalY + 6;
+    y = doc.lastAutoTable.finalY + 8;
   }
 
-  drawIssueTable('INTERIOR ISSUES', fd.interior, true, [0, 121, 193]);
-  drawIssueTable('EXTERIOR ISSUES', fd.exterior, true, [0, 79, 125]);
-  drawIssueTable('PRODUCT IMPROVEMENT SECTION', fd.improv, false, [46, 50, 56]);
+  drawIssueTable('INTERIOR ISSUES', fd.interior, true, BLUE);
+  drawIssueTable('EXTERIOR ISSUES', fd.exterior, true, DARK_BLUE);
+  drawIssueTable('PRODUCT IMPROVEMENT', fd.improv, false, CHARCOAL);
 
-  // Photos
+  // ── PHOTOS ──────────────────────────────────────────────────
   if (photos.length > 0) {
-    if (y > 200) { doc.addPage(); y = 20; }
-    doc.setFillColor(0, 121, 193);
-    doc.rect(PL, y, CW, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('PHOTOS', PL + 3, y + 4.5);
-    y += 10;
-
-    const imgW = 55, imgH = 42, gap = 5;
+    if (y > 200) { doc.addPage(); y = 16; }
+    drawSectionHeader('PHOTOS', BLUE);
+    y += 4;
+    const imgW = 56, imgH = 44, gap = 4;
     let px = PL;
     for (const photo of photos) {
-      if (px + imgW > W - PR) { px = PL; y += imgH + gap + 6; }
-      if (y + imgH > 270) { doc.addPage(); y = 20; px = PL; }
+      if (px + imgW > W - PR) { px = PL; y += imgH + gap + 8; }
+      if (y + imgH > 272) { doc.addPage(); y = 16; px = PL; }
       try {
+        // Rounded border behind image
+        doc.setDrawColor(...BORDER);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(px, y, imgW, imgH, 2, 2, 'S');
         const fmt = photo.data.includes('image/png') ? 'PNG' : 'JPEG';
-        doc.addImage(photo.data, fmt, px, y, imgW, imgH);
+        doc.addImage(photo.data, fmt, px + 0.5, y + 0.5, imgW - 1, imgH - 1);
         doc.setFontSize(6);
-        doc.setTextColor(120, 140, 160);
-        doc.text(photo.name.substring(0, 20), px, y + imgH + 3);
+        doc.setTextColor(...MUTED);
+        doc.text(photo.name.substring(0, 22), px + imgW / 2, y + imgH + 4, { align: 'center' });
       } catch(e) {}
       px += imgW + gap;
     }
     y += imgH + 10;
   }
 
-  // Footer
+  // ── FOOTER ──────────────────────────────────────────────────
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    doc.setDrawColor(200, 210, 220);
-    doc.line(PL, 285, W - PR, 285);
-    doc.setFontSize(7);
-    doc.setTextColor(150, 165, 180);
+    doc.setFillColor(...CHARCOAL);
+    doc.rect(0, 288, W, 9, 'F');
+    doc.setFillColor(...BLUE);
+    doc.rect(0, 288, 5, 9, 'F');
+    doc.setFontSize(6.5);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Jayco Australia · QAF-012 Issue 4 · Generated ${new Date().toLocaleDateString('en-AU')}`, PL, 290);
-    doc.text(`Page ${i} of ${pageCount}`, W - PR, 290, { align: 'right' });
+    doc.setTextColor(...WHITE);
+    doc.text(`Jayco Australia · QAF-012 Issue 4 · ${new Date().toLocaleDateString('en-AU')}`, PL + 4, 293.5);
+    doc.setTextColor(180, 200, 220);
+    doc.text(`Page ${i} of ${pageCount}`, W - PR, 293.5, { align: 'right' });
   }
 
   const chassis = fd.chassis || 'audit';
