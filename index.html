@@ -533,15 +533,15 @@
       </div>
       <div class="score-row">
         <div class="score-card">
-          <div class="score-label">Interior Score</div>
+          <div class="score-label">Interior Issues</div>
           <div class="score-value" id="scoreInterior">—</div>
         </div>
         <div class="score-card">
-          <div class="score-label">Exterior Score</div>
+          <div class="score-label">Exterior Issues</div>
           <div class="score-value" id="scoreExterior">—</div>
         </div>
         <div class="score-card">
-          <div class="score-label">Overall Score</div>
+          <div class="score-label">Total Issues</div>
           <div class="score-value" id="scoreOverall">—</div>
         </div>
       </div>
@@ -751,9 +751,9 @@ function updateScores() {
   const extIssues = countIssues('ext', 8);
   const intNum = Math.max(0, 12 - intIssues);
   const extNum = Math.max(0, 8 - extIssues);
-  const intScore = intIssues === 0 ? '—' : intNum;
-  const extScore = extIssues === 0 ? '—' : extNum;
-  const overall = (intIssues === 0 && extIssues === 0) ? '—' : (intNum + extNum);
+  const intScore = intIssues === 0 ? '—' : intIssues;
+  const extScore = extIssues === 0 ? '—' : extIssues;
+  const overall = (intIssues === 0 && extIssues === 0) ? '—' : (intIssues + extIssues);
   document.getElementById('scoreInterior').textContent = intScore;
   document.getElementById('scoreExterior').textContent = extScore;
   document.getElementById('scoreOverall').textContent = overall;
@@ -1079,7 +1079,7 @@ async function exportPDF() {
 
   // ── SCORE CARDS ─────────────────────────────────────────────
   const scW = (CW - 6) / 3;
-  const scLabels = ['INTERIOR SCORE', 'EXTERIOR SCORE', 'OVERALL SCORE'];
+  const scLabels = ['INTERIOR ISSUES', 'EXTERIOR ISSUES', 'TOTAL ISSUES'];
   const scVals   = [fd.intScore, fd.extScore, fd.overall];
   scLabels.forEach((lbl, i) => {
     const sx = PL + i * (scW + 3);
